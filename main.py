@@ -1,28 +1,27 @@
+"""This script inputs a series of frames from a video of a tennis ball bouncing several times off of a table, and outputs
+the tennis ball's vertical position, velocity, and acceleration as functions of time.
+
+I do not own the video used in this code.  You can find the video on YouTube at this URL:
+https://www.youtube.com/watch?v=GIRqYz_hnkQ
+"""
+
+
 from skimage import io, color, feature
 from matplotlib import pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
 
-# I do not own the video used in this code.  You can find the video on YouTube at this URL:
-# https://www.youtube.com/watch?v=GIRqYz_hnkQ
-
-# This script inputs a series of frames from a video of a tennis ball bouncing several times off of a table, and outputs
-# the tennis ball's vertical position, velocity, and acceleration as functions of time.
-
-# Warren McQueary 6/2/20
-
-
-# [v] Create a list of names of all images in the sequence.
+# Create a list of names of all images in the sequence.
 list_of_image_names = []
 for ii in range(134):
-    list_of_image_names.append("scene" + str(ii+1).zfill(5) + ".png")   # Includes padding with 0s to the left as
+    list_of_image_names.append("frames/scene" + str(ii+1).zfill(5) + ".png")   # Includes padding with 0s to the left as
     # needed.
 
-# [v] Import the images and read them into an ImageCollection.
+# Import the images and read them into an ImageCollection.
 image_collection = io.imread_collection(list_of_image_names, False, None, )
 
-# [v] Run blob detection and get the tennis ball centroid coordinates of each frame.
+# Run blob detection and get the tennis ball centroid coordinates of each frame.
 blob_record = []
 for ii in tqdm(range(len(image_collection))):
     # Use a mask to make the entire image black except for the ball.
@@ -44,20 +43,20 @@ for ii in tqdm(range(len(image_collection))):
     blob_record.append(feature.blob_log(my_image_ready_for_blob_detection, max_sigma=30, min_sigma=3, num_sigma=10,
                                         threshold=0.1)[0])
 
-# [v] From blob_record, make a simpler list of x and y positions (pixels), still with the origin in the top left and y
+# From blob_record, make a simpler list of x and y positions (pixels), still with the origin in the top left and y
 # increasing downward.
 x_coords_pixels, y_coords_pixels = [], []
 for frame in range(len(image_collection)):
     x_coords_pixels.append(blob_record[frame][1])
     y_coords_pixels.append(blob_record[frame][0])
 
-# [v] From the framerate of the video and the number of frames, make a simple list of time values (seconds).
+# From the framerate of the video and the number of frames, make a simple list of time values (seconds).
 times = []
 framerate = 25  # Hz
 for ii in range(len(image_collection)):
     times.append(ii/framerate)
 
-# [v] Convert the tennis ball centroid coordinates to a y position in each frame.
+# Convert the tennis ball centroid coordinates to a y position in each frame.
 x_coords_meters = []
 y_coords_meters = []
 for ii in range(len(image_collection)):
@@ -69,7 +68,7 @@ for ii in range(len(image_collection)):
     # long. y = 0 m at y = 270 pixels, where the ball first hits the table.
     y_coords_meters.append(-0.003941 * (y_coords_pixels[ii] - 270))
 
-# [v] Create a list of velocities.
+# Create a list of velocities.
 x_velocities_meters_per_second = []
 y_velocities_meters_per_second = []
 for ii in range(len(image_collection)):
@@ -80,7 +79,7 @@ for ii in range(len(image_collection)):
         x_velocities_meters_per_second.append((x_coords_meters[ii] - x_coords_meters[ii-1])*framerate)
         y_velocities_meters_per_second.append((y_coords_meters[ii] - y_coords_meters[ii-1])*framerate)
 
-# [v] Create a list of accelerations.
+# Create a list of accelerations.
 x_accelerations_meters_per_second_squared = []
 y_accelerations_meters_per_second_squared = []
 for ii in range(len(image_collection)):
@@ -93,7 +92,7 @@ for ii in range(len(image_collection)):
         y_accelerations_meters_per_second_squared.append((y_velocities_meters_per_second[ii] -
                                                           y_velocities_meters_per_second[ii-1])*framerate)
 
-# [v] Graph vertical position, velocity, and acceleration as functions of time.
+# Graph vertical position, velocity, and acceleration as functions of time.
 # Create subplots.
 fig, axs = plt.subplots(3, 2)
 fig.suptitle("All Measurements vs Time (seconds)")
